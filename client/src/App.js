@@ -1,31 +1,32 @@
-import React, {useEffect} from "react";
-import ControllerForm from "./Components/ControllerForm";
-
+//import React, { useState } from "react";
+import "./index.css";
+import FunctionalComponent from "./Components/FunctionalComponent";
+import Slider from "./Slider";
 
 function App() {
-//   useEffect(() => {
+  //   useEffect(() => {
 
-//     const url = "http://localhost:5000/test";
-//     const data = { theta: "45", mass: "10", length: "10"};
+  //     const url = "http://localhost:5000/test";
+  //     const data = { theta: "45", mass: "10", length: "10"};
 
-// fetch(url, {
-//   method: "POST",
-//   headers: {
-//     "Content-Type": "application/json",
-//   },
-//   body: JSON.stringify(data),
-// })
-//   .then(response => response.json())
-//   .then(data => {
-//     console.log("Received",data)
-//   })
-//   },[])
-
-
- 
+  // fetch(url, {
+  //   method: "POST",
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //   },
+  //   body: JSON.stringify(data),
+  // })
+  //   .then(response => response.json())
+  //   .then(data => {
+  //     console.log("Received",data)
+  //   })
+  //   },[])
 
   return (
-<ControllerForm/>
+    // <div className="App">
+    //   <Slider />
+    // </div>
+    <FunctionalComponent/>
   );
 }
 

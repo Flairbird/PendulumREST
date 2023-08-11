@@ -1,0 +1,43 @@
+:root {
+  --main-color: rgb(26, 200, 118);
+  --main-color-hover: #15344f;
+  --track-color: #007ce7;
+  --custom-text: "New Text";
+}
+
+.customSlider {
+  max-width: 300px;
+  margin: auto;
+}
+
+.customSlider-track {
+  top: 8px;
+  height: 4px;
+  background: var(--track-color);
+}
+
+.customSlider-track.customSlider-track-0 {
+  background: var(--main-color);
+}
+
+.customSlider-thumb {
+  cursor: pointer;
+  background: var(--main-color);
+  width: 20px;
+  height: 20px;
+  border-radius: 100%;
+  outline: none;
+}
+
+.customSlider-thumb:hover {
+  box-shadow: 0 0 0 8px var(--main-color-hover);
+}
+
+.custom-label {
+  font-size: 0;
+}
+
+.custom-label::before {
+  font-size: 1rem;
+  content: var(--custom-text);
+}
