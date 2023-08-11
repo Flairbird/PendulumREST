@@ -43,7 +43,7 @@ function FunctionalComponent() {
             <label>
               <br />
             </label>
-            <Slider minValue={1} maxValue={50} defaultValue={5} identifier="Lenght" index={i + 1}/>
+            <Slider minValue={1} maxValue={50} defaultValue={5} identifier="Length" index={i + 1}/>
           </div>
         );
       })}
