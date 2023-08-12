@@ -15,7 +15,6 @@ const Slider = ({ minValue, maxValue, defaultValue, identifier, index }) => {
         thumbClassName="customSlider-thumb"
         min={minValue}
         max={maxValue}
-        // defaultValue={defaultValue}
         value={currentValue}
         onChange={(value) => setCurrentValue(value)}
       />

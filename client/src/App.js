@@ -1,7 +1,7 @@
-//import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./index.css";
-import FunctionalComponent from "./Components/FunctionalComponent";
-import Slider from "./Slider";
+import PendulumGenerator from "./Components/PendulumGenerator";
+import PendulumContainer from "./Components/PendulumContainer";
 
 function App() {
   //   useEffect(() => {
@@ -22,11 +22,18 @@ function App() {
   //   })
   //   },[])
 
+
+  const [pendulums, setPendulums] = useState([])
+
+  const updatePendulums = (updatedPendulums) => {
+    setPendulums(updatedPendulums);
+  }
+
   return (
-    // <div className="App">
-    //   <Slider />
-    // </div>
-    <FunctionalComponent/>
+    <div className="App">
+      <PendulumGenerator updatePendulums={updatePendulums} pendulums={pendulums}/>
+      <PendulumContainer pendulums={pendulums} />
+    </div>
   );
 }
 
