@@ -15,7 +15,8 @@ app.route("/test")
     console.log(theta,mass,length)
 
 
-    res.send({x: theta *2, y: mass*4, z:length/2 })
+    // res.send({x: theta *2, y: mass*4, z:length/2 })
+    res.send({x: theta, y: mass, z:length })
 })
 
 app.route("/home")
