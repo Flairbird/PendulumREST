@@ -4,87 +4,101 @@ const WebSocket = require('ws');
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
-
 const app = express();
-app.use(cors({ origin: "http://localhost:3000" }))
+app.use(cors({ origin: "http://localhost:3000" }));
 app.use(bodyParser.json());
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 const PORT = 5002;
-const updateInterval = 10
-const sendInterval = updateInterval*10
+const updateInterval = 5;
+const sendInterval = updateInterval * 10;
 
-let isPlaying = false;
-let clientSocket = null;
+const updateTheta = (theta, omega, alpha, length, deltaT) => {
+    const negativeGravity = -9.81;
+    alpha = (negativeGravity / length) * Math.sin(theta);
+    omega += alpha * deltaT * 0.001;
+    theta += omega * deltaT * 0.001;
 
-const updateTheta = (theta, omega, length, deltaT) => {
-    //Equations: 
-    //positive=counterclockwise
-    //AngularAccel = alpha = -g/length*sin(theta)
-    //AngularVeloc = omega(t1) = omega(0) + alpha * (t1-t0)
-    //AngularPos = theta = theta + omega(0) * (t1-t0)
-
-    negativeGravity = -9.81
-    alpha = (negativeGravity / length) * (Math.sin(theta))
-    theta = theta + (omega * deltaT * 0.001)
-    omega = omega + (alpha * deltaT * 0.001)
-
-    console.log(`Updated Alpha ${alpha}`)
-    console.log(`Updated Omega ${omega}`)
-    console.log(`Updated Theta ${theta}`)
-    return { theta: theta, omega: omega }
-}
+    
+    return { theta, omega, alpha };
+};
 
 const updateData = ({ theta, omega, length, mass }) => {
-    const r = mass * 0.5
-    const x2 = 200 + (length * 10 * Math.sin(theta))
-    const y2 = (length * 10 * Math.abs(Math.cos(theta)))
-    console.log(`Display Theta ${theta}`)
-    console.log(`X2 =  ${x2}`)
-    console.log(`Y2 =  ${y2}`)
-    return { x2: x2, y2: y2, r: r }
-}
+    const r = mass * 0.5;
+    const x2 = 200 + (length * 10 * Math.sin(theta));
+    const y2 = length * 10 * Math.abs(Math.cos(theta));
+    return { x2, y2, r };
+};
 
 wss.on('connection', (socket) => {
+    let updateThetaInterval, sendMessageInterval;
+    let position = { theta: 0, omega: 0, alpha: 0 };
 
-    let sendMessageInterval = null;
-    socket.isActive = true;
-
-    socket.on('message', (message) => {
-        let nextData = JSON.parse(message);
-        let position = { theta: nextData.theta, omega: 0, alpha: 0 };
-
+    const startIntervals = (clientData) => {
         updateThetaInterval = setInterval(() => {
-
-            if (!socket.isActive) {
+            if (!socket.isPlaying) {
                 clearInterval(updateThetaInterval);
                 return;
             }
-
-            position = updateTheta(position.theta, position.omega, nextData.length, updateInterval);
-        
+            position = updateTheta(position.theta, position.omega, position.alpha, clientData.data.length, updateInterval);
         }, updateInterval);
-        
-        sendMessageInterval = setInterval(() => {
 
-            if (!socket.isActive) {
+        sendMessageInterval = setInterval(() => {
+            if (!socket.isPlaying) {
                 clearInterval(sendMessageInterval);
                 return;
             }
 
-            //position = updateTheta(position.theta, position.omega, nextData.length, interval);
-            nextData.theta = position.theta;
-            const displayLine = updateData(nextData);
-
-            socket.send(JSON.stringify(displayLine));
-
+            const displayData = updateData({ ...clientData.data, theta: position.theta });
+            socket.send(JSON.stringify(displayData));
         }, sendInterval);
+    };
+
+    socket.on('message', (message) => {
+        const clientData = JSON.parse(message);
+        const action = clientData.action;
+
+        switch (action) {
+            case 'play':
+                socket.isPlaying = true;
+                position = {
+                    theta: clientData.data.theta,
+                    omega: 0
+                };
+                startIntervals(clientData);
+                break;
+
+            case 'pause':
+                socket.isPlaying = false;
+                if (updateThetaInterval) clearInterval(updateThetaInterval);
+                if (sendMessageInterval) clearInterval(sendMessageInterval);
+                break;
+
+            case 'resume':
+                socket.isPlaying = true;
+                startIntervals(clientData);
+                break;
+
+            case 'stop':
+                socket.isPlaying = false;
+                if (updateThetaInterval) clearInterval(updateThetaInterval);
+                if (sendMessageInterval) clearInterval(sendMessageInterval);
+                break;
+
+            default:
+                console.log("Unknown action:", action);
+                break;
+        }
     });
 
     socket.on('close', () => {
-        socket.isActive = false;
+        socket.isPlaying = false;
+        if (updateThetaInterval) clearInterval(updateThetaInterval);
+        if (sendMessageInterval) clearInterval(sendMessageInterval);
     });
 });
 
-server.listen(PORT, () => { console.log(`Listening with port:${PORT}`) });
+server.listen(PORT, () => {
+    console.log(`Listening on port: ${PORT}`);
+});
