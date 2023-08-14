@@ -9,7 +9,7 @@ const Slider = ({ minValue, maxValue, defaultValue, identifier, index, updateCon
   return (
     <div>
       <label htmlFor={identifier}>
-        {`Input ${identifier} ${index}: ${currentValue}`}
+        {`Input ${index} ${identifier}: ${currentValue}`}
       </label>
       <ReactSlider
         className="customSlider"
