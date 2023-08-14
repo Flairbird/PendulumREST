@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Slider from "../Slider";
 
-let isPaused = false
-
 const PendulumController = ({ port, defaultConditions, i, updateLineProp, updateCircleProp, lineProp, circleProp }) => {
     const [initialConditions, setInitialConditions] = useState(defaultConditions);
     const [socket, setSocket] = useState(null);
+    const [isPaused, setIsPaused] = useState(false);
 
     useEffect(() => {
         return () => {
@@ -20,47 +19,58 @@ const PendulumController = ({ port, defaultConditions, i, updateLineProp, update
     };
 
     const handleAction = (action) => {
-        if (action === 'play') {
-            const webSocket = new WebSocket(`ws://localhost:${port}`);
+        switch (action) {
+            case 'play':
+                const webSocket = new WebSocket(`ws://localhost:${port}`);
 
-            webSocket.addEventListener('open', () => {
-                console.log('Connected to WS server');
+                webSocket.addEventListener('open', () => {
+                    console.log('Connected to WS server');
+                    const thetaInRadians = initialConditions.theta * 0.01745329251994329576923690768489; // Convert to radians
+                    const payload = {
+                        action: 'play',
+                        data: { ...initialConditions, theta: thetaInRadians }
+                    };
+                    console.log(`Sending to server: ${JSON.stringify(payload)}`);
+                    webSocket.send(JSON.stringify(payload));
+                });
+
+                webSocket.addEventListener('message', (event) => {
+                    const data = JSON.parse(event.data);
+                    console.log("Received:", data);
+                    updateLineProp({ x1: lineProp.x1, x2: data.x2, y1: lineProp.y1, y2: data.y2 });
+                    updateCircleProp({ x: data.x2, y: data.y2, r: data.r });
+                });
+
+                setSocket(webSocket);
+                break;
+
+            case 'pause':
+                setIsPaused(!isPaused);
+                socket.send(JSON.stringify({ action: 'pause' }));
+                break;
+
+            case 'resume':
+                setIsPaused(!isPaused);
                 const thetaInRadians = initialConditions.theta * 0.01745329251994329576923690768489; // Convert to radians
-                const payload = JSON.stringify({ ...initialConditions, theta: thetaInRadians });
+                const payload = {
+                    action: 'resume',
+                    data: { ...initialConditions, theta: thetaInRadians }
+                };
 
-                console.log(`Sending to server: ${payload}`);
-                webSocket.send(payload);
-            });
-
-            webSocket.addEventListener('message', (event) => {
-                const data = JSON.parse(event.data);
-                console.log("Received:", data);
-                updateLineProp({ x1: lineProp.x1, x2: data.x2, y1: lineProp.y1, y2: data.y2 });
-                updateCircleProp({ x: data.x2, y: data.y2, r: data.r })
-            });
-
-            setSocket(webSocket);
-
-        }
-
-        else if (action === 'pause') {
-            if (isPaused == false) {
-                isPaused = true
-                
-
-            }
-            else if (isPaused == true) {
+                socket.send(JSON.stringify(payload));
+                break;
 
 
-                isPaused = false
+            case 'stop':
+                if (socket) {
+                    socket.send(JSON.stringify({ action: 'stop' }));
+                    socket.close();
+                    setSocket(null);
+                }
+                break;
 
-            }
-
-        } else if (action === 'stop') {
-            if (socket) {
-                socket.close();
-                setSocket(null);
-            }
+            default:
+                break;
         }
     };
 
@@ -78,6 +88,7 @@ const PendulumController = ({ port, defaultConditions, i, updateLineProp, update
             <br />
             <button onClick={() => handleAction('play')}>Play</button>
             <button onClick={() => handleAction('pause')}>Pause</button>
+            <button onClick={() => handleAction('resume')}>Resume</button>
             <button onClick={() => handleAction('stop')}>Stop</button>
         </div>
     );
