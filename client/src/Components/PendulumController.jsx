@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import Slider from "../Slider";
 
-
-const PendulumController = ({ port, defaultConditions, i, updateLineProp, updateCircleProp, lineProp, circleProp }) => {
+const PendulumController = ({ port, defaultConditions, i, updateLineProp, updateCircleProp, lineProp, displayProp }) => {
     const [initialConditions, setInitialConditions] = useState(defaultConditions);
-    const [positionData, setPositionData] = useState(circleProp);
+    const [positionData, setPositionData] = useState(displayProp);
     const [dataReceived, setDataReceived] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
-
+    const [isPaused, setIsPaused] = useState(false);
+    const [isStopped, setIsStopped] = useState(true);
 
     const updateConditions = (updatedConditions) => {
         setInitialConditions(previousConditions => ({ ...previousConditions, ...updatedConditions }));
@@ -21,10 +21,8 @@ const PendulumController = ({ port, defaultConditions, i, updateLineProp, update
     };
 
     const handleAction = async (action) => {
-        let payloadData = { ...initialConditions }
+        let payloadData = { ...initialConditions };
 
-        if (action == 'play') {
-        }
         const payload = {
             action: action,
             data: payloadData
@@ -37,36 +35,62 @@ const PendulumController = ({ port, defaultConditions, i, updateLineProp, update
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)
-
             });
 
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
 
-            setPositionData(await response.json());
+            if (action == 'play') {
+                setIsStopped(false);
+                if (isStopped) {
+                    setPositionData(await response.json());
+                    setCurrentIndex(0);
+                    setDataReceived(true);
+                } else if (isPaused) {
+                    setIsPaused(prevIsPaused => !prevIsPaused);
+                    setDataReceived(true);
+                    setCurrentIndex(prevIndex => (prevIndex + 1) % positionData.length);
+                    await response.json();
+                } else {
+                    console.log("Already Playing");
+                }
 
-            setDataReceived(true);
+                console.log("Play");
+            } else if (action == 'pause') {
+                console.log("Pause");
+                setIsPaused(prevIsPaused => !prevIsPaused);
+                if (!isPaused) {
+                    setDataReceived(false);
+                    console.log("Paused");
+                } else {
+                    setDataReceived(true);
+                    setCurrentIndex(prevIndex => (prevIndex + 1) % positionData.length);
+                    console.log("Unpaused");
+                }
 
+                await response.json();
+            } else if (action == 'stop') {
+                console.log("Stop");
+                setDataReceived(false);
+                setIsStopped(true);
+                await response.json();
+            }
         } catch (error) {
             console.error("There was an error!", error);
         }
     };
 
-
     useEffect(() => {
         if (dataReceived && positionData.length > 0) {
             const interval = setInterval(() => {
-                const { newLineProp, newCircleProp } = displayFunction(positionData[currentIndex]);
-
-                //console.log(positionData[currentIndex])
-                console.log(currentIndex)
-
+                const { newLineProp, newCircleProp, newDisplayProp } = displayFunction(positionData[currentIndex]);
+                console.log(positionData[currentIndex].updateInterval);
+                console.log(currentIndex);
                 updateLineProp(prev => ({ ...prev, ...newLineProp }));
                 updateCircleProp(prev => ({ ...prev, ...newCircleProp }));
-
                 setCurrentIndex(prevIndex => (prevIndex + 1) % positionData.length);
-            }, 100);
+            }, positionData[currentIndex].updateInterval);
 
             return () => clearInterval(interval);
         }

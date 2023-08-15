@@ -9,69 +9,64 @@ app.use(bodyParser.json());
 
 const server = http.createServer(app);
 const PORT = 5000;
-const updateInterval = 5;
-const sendInterval = updateInterval * 10;
-let positions = [{ x: 200, y: 100, r: 10 }]
+const updateInterval = 20;
+let positions = [{ x: 210, y: 100, r: 10 }];
 
 const updateTheta = ({ theta, omega, alpha, length, mass }) => {
-    //console.log(theta)
-    deltaTime = 100
+    deltaTime = updateInterval;
     const negativeGravity = -9.81;
     alpha = (negativeGravity / length) * Math.sin(theta);
     omega += alpha * deltaTime * 0.001;
     theta += omega * deltaTime * 0.001;
 
-
-    return { theta: theta, omega, alpha, length, mass };
+    return { theta, omega, alpha, length, mass };
 };
 
 const updatePositions = ({ theta, length, mass }) => {
     const r = mass * 0.5;
-    const x = 200 + (length * 10 * Math.sin(theta));
+    const x = 210 + (length * 10 * Math.sin(theta));
     const y = length * 10 * Math.abs(Math.cos(theta));
-    return { x, y, r };
+    return { x, y, r, updateInterval };
 };
-
 
 app.put('/', (req, res) => {
     const state = req.body.action;
     const data = req.body.data;
     switch (state) {
         case 'play':
-            positions = []
-            console.log("Played")
-            console.log("Received Initial Conditions: ", data)
-            let nextData = updateTheta(data)
-            let dataBefore = updateTheta(data)
-            let cycleCount = 0
+            positions = [];
+            console.log("Played");
+            console.log("Received Initial Conditions: ", data);
+            let nextData = updateTheta(data);
+            let dataBefore = updateTheta(data);
+            let cycleCount = 0;
             while (true) {
-                if (dataBefore.omega > 0 && nextData.omega <= 0) cycleCount++
-                if (dataBefore.omega < 0 && nextData.omega >= 0) cycleCount++
-                dataBefore = nextData
-                nextData = updateTheta(dataBefore)
-                positions.push(updatePositions({ ...nextData, theta: nextData.theta }))
+                if (dataBefore.omega > 0 && nextData.omega <= 0) cycleCount++;
+                if (dataBefore.omega < 0 && nextData.omega >= 0) cycleCount++;
+                dataBefore = nextData;
+                nextData = updateTheta(dataBefore);
+                positions.push(updatePositions({ ...nextData, theta: nextData.theta }));
 
-                if (cycleCount>1) {
-                    console.log("Positions Sent: ",positions)
-                    res.send(positions)
+                if (cycleCount > 1) {
+                    console.log("Positions Sent: ", positions);
+                    res.send(positions);
                     break;
                 }
             }
 
             break;
         case 'pause':
-            console.log("Paused")
+            console.log("Paused");
+            res.send({ status: 'success' });
             break;
         case 'stop':
-            console.log("Stopped")
+            console.log("Stopped");
+            res.send({ status: 'success' });
             break;
         default:
             return res.status(400).send({ error: 'Unknown state' });
     }
-    //res.send({ status: 'success' });
 });
-
-
 
 server.listen(PORT, () => {
     console.log(`Listening on port: ${PORT}`);
