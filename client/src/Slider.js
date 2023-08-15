@@ -1,7 +1,7 @@
 import { useState } from "react";
 import ReactSlider from "react-slider";
 
-const Slider = ({ minValue, maxValue, defaultValue, identifier, index, updateCondition }) => {
+const Slider = ({ minValue, maxValue, defaultValue, identifier, index, updateConditions }) => {
   const [currentValue, setCurrentValue] = useState(defaultValue);
   
   
@@ -20,7 +20,7 @@ const Slider = ({ minValue, maxValue, defaultValue, identifier, index, updateCon
         value={currentValue}
         onChange={(value) => {
           setCurrentValue(value);
-          updateCondition(value);
+          updateConditions(value);
         }}
       />
     </div>

@@ -8,12 +8,10 @@ const [lineProp, setLineProp] = useState({x1:200,x2:200,y1:0,y2:100})
 const [circleProp, setCircleProp] = useState({x:200, y:100, r:10})
 
 const updateLineProp = (updatedLine) => {
-    console.log(updatedLine)
     setLineProp(updatedLine)
 }
 
 const updateCircleProp = (updatedCircle) => {
-    console.log(updatedCircle)
     setCircleProp(updatedCircle)
 }
 

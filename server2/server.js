@@ -1,6 +1,5 @@
 const express = require("express");
 const http = require('http');
-const WebSocket = require('ws');
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
@@ -9,95 +8,70 @@ app.use(cors({ origin: "http://localhost:3000" }));
 app.use(bodyParser.json());
 
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
 const PORT = 5002;
 const updateInterval = 5;
 const sendInterval = updateInterval * 10;
+let positions = [{ x: 200, y: 100, r: 10 }]
 
-const updateTheta = (theta, omega, alpha, length, deltaT) => {
+const updateTheta = ({ theta, omega, alpha, length, mass }) => {
+    //console.log(theta)
+    deltaTime = 100
     const negativeGravity = -9.81;
     alpha = (negativeGravity / length) * Math.sin(theta);
-    omega += alpha * deltaT * 0.001;
-    theta += omega * deltaT * 0.001;
+    omega += alpha * deltaTime * 0.001;
+    theta += omega * deltaTime * 0.001;
 
-    
-    return { theta, omega, alpha };
+
+    return { theta: theta, omega, alpha, length, mass };
 };
 
-const updateData = ({ theta, omega, length, mass }) => {
+const updatePositions = ({ theta, length, mass }) => {
     const r = mass * 0.5;
-    const x2 = 200 + (length * 10 * Math.sin(theta));
-    const y2 = length * 10 * Math.abs(Math.cos(theta));
-    return { x2, y2, r };
+    const x = 200 + (length * 10 * Math.sin(theta));
+    const y = length * 10 * Math.abs(Math.cos(theta));
+    return { x, y, r };
 };
 
-wss.on('connection', (socket) => {
-    let updateThetaInterval, sendMessageInterval;
-    let position = { theta: 0, omega: 0, alpha: 0 };
 
-    const startIntervals = (clientData) => {
-        updateThetaInterval = setInterval(() => {
-            if (!socket.isPlaying) {
-                clearInterval(updateThetaInterval);
-                return;
+app.put('/', (req, res) => {
+    const state = req.body.action;
+    const data = req.body.data;
+    switch (state) {
+        case 'play':
+            positions = []
+            console.log("Played")
+            console.log("Received Initial Conditions: ", data)
+            let nextData = updateTheta(data)
+            let dataBefore = updateTheta(data)
+            let cycleCount = 0
+            while (true) {
+                if (dataBefore.omega > 0 && nextData.omega <= 0) cycleCount++
+                if (dataBefore.omega < 0 && nextData.omega >= 0) cycleCount++
+                dataBefore = nextData
+                nextData = updateTheta(dataBefore)
+                positions.push(updatePositions({ ...nextData, theta: nextData.theta }))
+
+                if (cycleCount>1) {
+                    console.log("Positions Sent: ",positions)
+                    res.send(positions)
+                    break;
+                }
             }
-            position = updateTheta(position.theta, position.omega, position.alpha, clientData.data.length, updateInterval);
-        }, updateInterval);
 
-        sendMessageInterval = setInterval(() => {
-            if (!socket.isPlaying) {
-                clearInterval(sendMessageInterval);
-                return;
-            }
-
-            const displayData = updateData({ ...clientData.data, theta: position.theta });
-            socket.send(JSON.stringify(displayData));
-        }, sendInterval);
-    };
-
-    socket.on('message', (message) => {
-        const clientData = JSON.parse(message);
-        const action = clientData.action;
-
-        switch (action) {
-            case 'play':
-                socket.isPlaying = true;
-                position = {
-                    theta: clientData.data.theta,
-                    omega: 0
-                };
-                startIntervals(clientData);
-                break;
-
-            case 'pause':
-                socket.isPlaying = false;
-                if (updateThetaInterval) clearInterval(updateThetaInterval);
-                if (sendMessageInterval) clearInterval(sendMessageInterval);
-                break;
-
-            case 'resume':
-                socket.isPlaying = true;
-                startIntervals(clientData);
-                break;
-
-            case 'stop':
-                socket.isPlaying = false;
-                if (updateThetaInterval) clearInterval(updateThetaInterval);
-                if (sendMessageInterval) clearInterval(sendMessageInterval);
-                break;
-
-            default:
-                console.log("Unknown action:", action);
-                break;
-        }
-    });
-
-    socket.on('close', () => {
-        socket.isPlaying = false;
-        if (updateThetaInterval) clearInterval(updateThetaInterval);
-        if (sendMessageInterval) clearInterval(sendMessageInterval);
-    });
+            break;
+        case 'pause':
+            console.log("Paused")
+            break;
+        case 'stop':
+            console.log("Stopped")
+            break;
+        default:
+            return res.status(400).send({ error: 'Unknown state' });
+    }
+    //res.send({ status: 'success' });
 });
+
+
 
 server.listen(PORT, () => {
     console.log(`Listening on port: ${PORT}`);
