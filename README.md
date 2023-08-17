@@ -11,20 +11,20 @@ It is specifically designed for updating pendulum configurations. The primary co
 
 ## Directory Structure
 
-src/
-│
-├── App.js               # Main app component
-├── index.css            # App-wide styles
-├── index.js             # App entry point
-├── Slider.js            # Custom slider component
-│
-└── Components/
-    ├── PendulumGenerator.jsx   # UI for generating pendulums
-    ├── PendulumContainer.jsx  # Container for multiple pendulum instances
-    ├── PendulumInstance.jsx   # Represents an individual pendulum
-    ├── PendulumController.jsx # Controls and settings for a pendulum
-    └── PendulumDisplay/       
-        └── index.jsx          # Visual representation of a pendulum
+src/<br/>
+│<br/>
+├── App.js               # Main app component<br/>
+├── index.css            # App-wide styles<br/>
+├── index.js             # App entry point<br/>
+├── Slider.js            # Custom slider component<br/>
+│<br/>
+└── Components/<br/>
+    ├── PendulumGenerator.jsx   # UI for generating pendulums<br/>
+    ├── PendulumContainer.jsx  # Container for multiple pendulum instances<br/>
+    ├── PendulumInstance.jsx   # Represents an individual pendulum<br/>
+    ├── PendulumController.jsx # Controls and settings for a pendulum<br/>
+    └── PendulumDisplay/       <br/>
+        └── index.jsx          # Visual representation of a pendulum<br/>
 
 server/
 └── server.js             # Backend for the simulation
@@ -61,12 +61,19 @@ server4/
 
 ### Frontend
 
-1.  Navigate to the root directory.
-2.  Install the dependencies:
+1.  Install node.js v18.17.1 (https://nodejs.org/en)
 
-`npm install` 
+2.  Open a Terminal and navigate to the root directory.
+3.  Install the following dependencies:
 
-3.  Run the React development server:
+`npm install react` 
+`npm install react-slider` 
+
+4.  Navigate to the client directory:
+
+`cd .\client\` 
+
+5.  Run the React development server:
 
 `npm start` 
 
@@ -74,16 +81,20 @@ The application will be available at `http://localhost:3000`.
 
 ### Backend
 
-1.  Navigate to the `server` directory.
-2.  Install the dependencies:
+1.  Open 5 more Terminals and from the root directory, navigate to each `server` directory. (server, server1, server2, server3, server4) with each terminal:
 
-`npm install` 
+`cd .\server\` 
+`cd .\server1\` 
+`cd .\server2\` 
+`cd .\server3\` 
+`cd .\server4\` 
 
-3.  Run the server:
 
-`node server.js` 
+2.  Run each server from their respective directories :
 
-The server will be listening on port `5000`.
+`npm start` 
+
+The servers will be listening on ports `5000`, `5001`, `5002`, `5003`, `5004`.
 
 ## Credits
 
