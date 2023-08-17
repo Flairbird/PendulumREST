@@ -66,7 +66,7 @@ server4/
 2.  Open a Terminal and navigate to the root directory.
 3.  Install the following dependencies:
 
-`npm install react` 
+`npm install react` <br/>
 `npm install react-slider` 
 
 4.  Navigate to the client directory:
@@ -81,16 +81,17 @@ The application will be available at `http://localhost:3000`.
 
 ### Backend
 
-1.  Open 5 more Terminals and from the root directory, navigate to each `server` directory. (server, server1, server2, server3, server4) with each terminal:
+1.  Open 5 more Terminals
+2.  From the root directory, navigate to each `server` directory with each terminal:
 
-`cd .\server\` 
-`cd .\server1\` 
-`cd .\server2\` 
-`cd .\server3\` 
-`cd .\server4\` 
+`cd .\server\` <br/>
+`cd .\server1\` <br/>
+`cd .\server2\` <br/>
+`cd .\server3\` <br/>
+`cd .\server4\` <br/>
 
 
-2.  Run each server from their respective directories :
+2.  Run each server from their respective directories' terminals :
 
 `npm start` 
 
