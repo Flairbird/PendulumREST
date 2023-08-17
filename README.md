@@ -11,7 +11,7 @@ It is specifically designed for updating pendulum configurations. The primary co
 
 ## Directory Structure
 
-src/<br/>
+client/src/<br/>
 │<br/>
 ├── App.js               # Main app component<br/>
 ├── index.css            # App-wide styles<br/>
